@@ -6,3 +6,4 @@ import matplotlib.pyplot as plt
 # VARIABLES
 
 x = np.array.zeros(4)
+y=np.array.zeros(4)
