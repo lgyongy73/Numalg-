@@ -1,9 +1,92 @@
+""" 
+SHORTCUTS
+
+long comment : Alt + Shift + A
+"""
+
+
 # IMPORTS
 
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib as plt
+from scipy import constants
+
 
 # VARIABLES
 
-x = np.array.zeros(4)
-y=np.array.zeros(4)
+# Might change frequently
+dt = 1e-2
+
+# Arrays
+mass = np.zeros(3, dtype = float) # masses of the 3 bodies [kg]
+
+xpos = np.zeros(3, dtype = float) # x&y position coordinates [m]
+ypos = np.zeros(3, dtype = float)
+xvel = np.zeros(3, dtype = float) # x&y velocity components [m/s]
+yvel = np.zeros(3, dtype = float)
+xacc = np.zeros(3, dtype = float) # x&y acceleration components [m/s^2]
+yacc = np.zeros(3, dtype = float)
+
+dist = np.zeros(3, dtype = float) # distances of the 3 bodies (1<-2,2<-3,1<-3) [m]
+
+xCOforce = np.zeros(3, dtype = float) # forces between the 3 bodies (1<-2,2<-3,1<-3) [N]
+yCOforce = np.zeros(3, dtype = float)
+xforce = np.zeros(3, dtype = float) # forces acting on the 3 bodies (1,2,3) [N]
+yforce = np.zeros(3, dtype = float)
+
+# Constants
+order = np.array([[0,1],[1,2],[0,2]]) # indexes in the order of usage of the 3 bodies (for "for" loop)
+
+G = constants.gravitational_constant # [m^3/(kg*s^2)]
+
+
+# INITIALIZATION
+
+mass = [1e4,2e4,4e4] # randomly given by us for now
+xpos = [0,1,0]
+ypos = [0,0,1]
+
+
+# COMPUTATION
+
+# Forces
+for i in range(3):
+    #print(order[i,1]+1, "on", order[i,0]+1)
+    
+    dist[i] = np.sqrt((xpos[order[i,1]]-xpos[order[i,0]])**2 + (ypos[order[i,1]]-ypos[order[i,0]])**2)
+    #print("distance =", dist[i])
+    
+    if (dist[i] != 0):
+        F = G * (mass[order[i,1]]*mass[order[i,0]]) / dist[i]**2 # force [N]
+        #print("F =",F)
+    else: # 2 bodies have the same position coordinates
+        xCOforce[i] = 0
+        yCOforce[i] = 0
+        #print(xforce[i], yforce[i])
+        continue
+
+    xCOforce[i] = F * (xpos[order[i,1]]-xpos[order[i,0]]) / dist[i]
+    yCOforce[i] = F * (ypos[order[i,1]]-ypos[order[i,0]]) / dist[i]
+    #print("Fx =", xforce[i], "Fy =", yforce[i], "\n")
+
+xforce[0] = xCOforce[0] + xCOforce[2] # acting on 1st body
+yforce[0] = yCOforce[0] + yCOforce[2]
+xforce[1] = xCOforce[1] - xCOforce[0] # acting on 2nd body
+yforce[1] = yCOforce[1] - yCOforce[0]
+xforce[2] = - xCOforce[1] - xCOforce[2] # acting on 3rd body
+yforce[2] = - yCOforce[1] - yCOforce[2]
+
+# Accelerations
+for i in range(3):
+    xacc[i] = xforce[i] / mass[i]
+    yacc[i] = yforce[i] / mass[i]
+
+# Velocities
+for i in range(3):
+    xvel[i] += xacc[i] * dt
+    yvel[i] += yacc[i] * dt
+    
+# Positions
+for i in range(3):
+    xpos[i] += xvel[i] * dt
+    ypos[i] += yvel[i] * dt
