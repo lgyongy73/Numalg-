@@ -15,7 +15,7 @@ from scipy import constants
 # VARIABLES
 
 # Might change frequently
-dt = 1e-2
+dt = 5e-2
 
 # Arrays
 mass = np.zeros(3, dtype = float) # masses of the 3 bodies [kg]
@@ -36,57 +36,82 @@ yforce = np.zeros(3, dtype = float)
 
 # Constants
 order = np.array([[0,1],[1,2],[0,2]]) # indexes in the order of usage of the 3 bodies (for "for" loop)
+colours = ["red","blue","black"] # colours of the celestial objects on the plots
+N = 100000 # number of steps
+n = 5000 # number of plotted steps
+opacity = np.linspace(0.1,1,int(N/n)+1)
 
 G = constants.gravitational_constant # [m^3/(kg*s^2)]
+PI = np.pi # precise pi value
 
 
 # INITIALIZATION
 
-mass = [1e4,2e4,4e4] # randomly given by us for now
-xpos = [0,1,0]
-ypos = [0,0,1]
+scale = np.sqrt((2*G*1e4)/(2*np.cos(PI/6))) # magnitude of the velocities
+
+mass = [1e4,1e4,1e4] # randomly given by us for now
+xpos = [np.cos(PI/6), np.cos(5*PI/6), np.cos(3*PI/2)]
+ypos = [np.sin(PI/6), np.sin(5*PI/6), np.sin(3*PI/2)]
+xvel = [scale*np.cos(2*PI/3), scale*np.cos(4*PI/3), scale*np.cos(0)] # tangential velocities counter-clockwise
+yvel = [scale*np.sin(2*PI/3), scale*np.sin(4*PI/3), scale*np.sin(0)]
 
 
-# COMPUTATION
+# COMPUTATION & PLOT
 
-# Forces
+# Plot Initialization
+plt.figure(figsize=(5,5))
 for i in range(3):
-    #print(order[i,1]+1, "on", order[i,0]+1)
-    
-    dist[i] = np.sqrt((xpos[order[i,1]]-xpos[order[i,0]])**2 + (ypos[order[i,1]]-ypos[order[i,0]])**2)
-    #print("distance =", dist[i])
-    
-    if (dist[i] != 0):
-        F = G * (mass[order[i,1]]*mass[order[i,0]]) / dist[i]**2 # force [N]
-        #print("F =",F)
-    else: # 2 bodies have the same position coordinates
-        xCOforce[i] = 0
-        yCOforce[i] = 0
-        #print(xforce[i], yforce[i])
-        continue
+    plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
 
-    xCOforce[i] = F * (xpos[order[i,1]]-xpos[order[i,0]]) / dist[i]
-    yCOforce[i] = F * (ypos[order[i,1]]-ypos[order[i,0]]) / dist[i]
-    #print("Fx =", xforce[i], "Fy =", yforce[i], "\n")
+for j in range(N):
+    # COMPUTATION
 
-xforce[0] = xCOforce[0] + xCOforce[2] # acting on 1st body
-yforce[0] = yCOforce[0] + yCOforce[2]
-xforce[1] = xCOforce[1] - xCOforce[0] # acting on 2nd body
-yforce[1] = yCOforce[1] - yCOforce[0]
-xforce[2] = - xCOforce[1] - xCOforce[2] # acting on 3rd body
-yforce[2] = - yCOforce[1] - yCOforce[2]
+    # Forces
+    for i in range(3):
+        #print(order[i,1]+1, "on", order[i,0]+1)
+        
+        dist[i] = np.sqrt((xpos[order[i,1]]-xpos[order[i,0]])**2 + (ypos[order[i,1]]-ypos[order[i,0]])**2)
+        #print("distance =", dist[i])
+        
+        if (dist[i] != 0):
+            F = G * (mass[order[i,1]]*mass[order[i,0]]) / dist[i]**2 # force [N]
+            #print("F =",F)
+        else: # 2 bodies have the same position coordinates
+            xCOforce[i] = 0
+            yCOforce[i] = 0
+            #print(xforce[i], yforce[i])
+            continue
 
-# Accelerations
-for i in range(3):
-    xacc[i] = xforce[i] / mass[i]
-    yacc[i] = yforce[i] / mass[i]
+        xCOforce[i] = F * (xpos[order[i,1]]-xpos[order[i,0]]) / dist[i]
+        yCOforce[i] = F * (ypos[order[i,1]]-ypos[order[i,0]]) / dist[i]
+        #print("Fx =", xforce[i], "Fy =", yforce[i], "\n")
 
-# Velocities
-for i in range(3):
-    xvel[i] += xacc[i] * dt
-    yvel[i] += yacc[i] * dt
-    
-# Positions
-for i in range(3):
-    xpos[i] += xvel[i] * dt
-    ypos[i] += yvel[i] * dt
+    xforce[0] = xCOforce[0] + xCOforce[2] # acting on 1st body
+    yforce[0] = yCOforce[0] + yCOforce[2]
+    xforce[1] = xCOforce[1] - xCOforce[0] # acting on 2nd body
+    yforce[1] = yCOforce[1] - yCOforce[0]
+    xforce[2] = - xCOforce[1] - xCOforce[2] # acting on 3rd body
+    yforce[2] = - yCOforce[1] - yCOforce[2]
+
+    # Accelerations
+    for i in range(3):
+        xacc[i] = xforce[i] / mass[i]
+        yacc[i] = yforce[i] / mass[i]
+
+    # Velocities
+    for i in range(3):
+        xvel[i] += xacc[i] * dt
+        yvel[i] += yacc[i] * dt
+        
+    # Positions
+    for i in range(3):
+        xpos[i] += xvel[i] * dt
+        ypos[i] += yvel[i] * dt
+
+        # PLOT
+
+        if (j%n==0):
+            plt.plot(xpos[i], ypos[i], marker = '.', color = colours[i], alpha = opacity[j//n])
+
+plt.grid()
+plt.show()
