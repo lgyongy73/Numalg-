@@ -10,6 +10,7 @@ long comment : Alt + Shift + A
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import constants
+import matplotlib.animation as animation
 
 
 # VARIABLES
@@ -41,7 +42,7 @@ N = 100000 # number of steps
 n = 5000 # number of plotted steps
 opacity = np.linspace(0.1,1,int(N/n)+1)
 
-G = constants.gravitational_constant # [m^3/(kg*s^2)]
+G = 1 #constants.gravitational_constant # [m^3/(kg*s^2)]
 PI = np.pi # precise pi value
 
 
@@ -115,3 +116,89 @@ for j in range(N):
 
 plt.grid()
 plt.show()
+
+
+
+# Runge-Kutta Method
+# https://www.youtube.com/watch?v=m3W47PKXmYY
+
+def derivative(xpos, ypos, xvel, yvel):
+
+    """ 
+    to use the Runge-Kutta method, we divide the system into 6 differential equations
+    v = dr/dt and a= dv/dt
+    this function receives positions and velocities for all three bodies as input (x and y direction)
+    and returns 12 derivatives (the velocities and accelerations in both x and y directions)
+    we pass all 12 derivatives in and out of the function because we use all 12 values in the RK4 method
+    """
+    
+    for i in range(3):
+        #print(order[i,1]+1, "on", order[i,0]+1)
+        
+        dist[i] = np.sqrt((xpos[order[i,1]]-xpos[order[i,0]])**2 + (ypos[order[i,1]]-ypos[order[i,0]])**2)
+        #print("distance =", dist[i])
+        
+        if (dist[i] != 0):
+            F = G * (mass[order[i,1]]*mass[order[i,0]]) / dist[i]**2 # force [N]
+            #print("F =",F)
+        else: # 2 bodies have the same position coordinates
+            xCOforce[i] = 0
+            yCOforce[i] = 0
+            #print(xforce[i], yforce[i])
+            continue
+
+        xCOforce[i] = F * (xpos[order[i,1]]-xpos[order[i,0]]) / dist[i]
+        yCOforce[i] = F * (ypos[order[i,1]]-ypos[order[i,0]]) / dist[i]
+        #print("Fx =", xforce[i], "Fy =", yforce[i], "\n")
+
+    xforce[0] = xCOforce[0] + xCOforce[2] # acting on 1st body
+    yforce[0] = yCOforce[0] + yCOforce[2]
+    xforce[1] = xCOforce[1] - xCOforce[0] # acting on 2nd body
+    yforce[1] = yCOforce[1] - yCOforce[0]
+    xforce[2] = - xCOforce[1] - xCOforce[2] # acting on 3rd body
+    yforce[2] = - yCOforce[1] - yCOforce[2]
+
+    # Accelerations
+    for i in range(3):
+        xacc[i] = xforce[i] / mass[i]
+        yacc[i] = yforce[i] / mass[i]
+    # Return 12 derivatives
+    return np.array([xvel, yvel, xacc, yacc])
+
+
+def RK4(xpos, ypos, xvel, yvel, dt):
+    k1=derivative(xpos, ypos, xvel, yvel)
+    k2=derivative(xpos+0.5*dt*k1[0], ypos+0.5*dt*k1[1],xvel+0.5*dt*k1[2], yvel+0.5*dt*k1[3])
+    k3=derivative(xpos+0.5*dt*k2[0], ypos+0.5*dt*k2[1],xvel+0.5*dt*k2[2], yvel+0.5*dt*k2[3])
+    k4=derivative(xpos+dt*k3[0], ypos+dt*k3[1],xvel+dt*k3[2], yvel+dt*k3[3])
+
+    for i in range(3):
+        xpos[i]+=dt/6*(k1[0, i]+2*k2[0, i]+2*k3[0, i]+k4[0,i])
+        ypos[i]+=dt/6*(k1[1, i]+2*k2[1, i]+2*k3[1, i]+k4[1,i])
+        xvel[i]+=dt/6*(k1[2, i]+2*k2[2, i]+2*k3[2, i]+k4[2,i])
+        yvel[i]+=dt/6*(k1[3, i]+2*k2[3, i]+2*k3[3, i]+k4[3,i])
+    return xpos, ypos, xvel, yvel
+
+
+# Trial initialization
+
+mass = [1,1,1] 
+xpos = [0.97000436, -0.97000436, 0]
+ypos = [-0.24308753, 0.24308753, 0]
+xvel = [0.93240737/2, 0.93240737/2, -.93240737] # tangential velocities counter-clockwise
+yvel = [0.8643146/2, 0.8643146/2, -.8643146]
+
+plt.figure(figsize=(5,5))
+for i in range(3): #initial positions
+    plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
+for j in range(N):
+    xpos, ypos, xvel, yvel = RK4(xpos, ypos, xvel, yvel, dt)
+    if (j%(n//4)==0):
+        for i in range(3):
+            plt.plot(xpos[i], ypos[i], '.', color=colours[i], alpha=opacity[j//n])
+            
+plt.xlim(-1.3, 1.3)
+plt.ylim(-1.3, 1.3)
+plt.grid()
+plt.show()
+
