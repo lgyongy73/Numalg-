@@ -1,10 +1,10 @@
+## Shortcuts
 """ 
 SHORTCUTS
 
 long comment : Alt + Shift + A
 """
-
-
+## Imports
 # IMPORTS
 
 import numpy as np
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy import constants
 import matplotlib.animation as animation
 
-
+## Variables
 # VARIABLES
 
 # Might change frequently
@@ -45,28 +45,13 @@ opacity = np.linspace(0.1,1,int(N/n)+1)
 G = 1 #constants.gravitational_constant # [m^3/(kg*s^2)]
 PI = np.pi # precise pi value
 
+## Functions
+#FUNCTIONS
 
-# INITIALIZATION
+#Function to compute acceleration
 
-scale = np.sqrt((2*G*1e4)/(2*np.cos(PI/6))) # magnitude of the velocities
-
-mass = [1e4,1e4,1e4] # randomly given by us for now
-xpos = [np.cos(PI/6), np.cos(5*PI/6), np.cos(3*PI/2)]
-ypos = [np.sin(PI/6), np.sin(5*PI/6), np.sin(3*PI/2)]
-xvel = [scale*np.cos(2*PI/3), scale*np.cos(4*PI/3), scale*np.cos(0)] # tangential velocities counter-clockwise
-yvel = [scale*np.sin(2*PI/3), scale*np.sin(4*PI/3), scale*np.sin(0)]
-
-
-# COMPUTATION & PLOT
-
-# Plot Initialization
-plt.figure(figsize=(5,5))
-for i in range(3):
-    plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
-
-for j in range(N):
-    # COMPUTATION
-
+def acceleration (xpos, ypos, xCOforce, yCOforce, xforce, yforce, xacc, yacc, mass):
+    
     # Forces
     for i in range(3):
         #print(order[i,1]+1, "on", order[i,0]+1)
@@ -99,6 +84,13 @@ for j in range(N):
         xacc[i] = xforce[i] / mass[i]
         yacc[i] = yforce[i] / mass[i]
 
+    return xacc, yacc
+Euler method
+#Euler method
+
+def Euler(xpos, ypos, xvel, yvel, xacc, yacc):
+    xacc, yacc = acceleration(xpos, ypos, xCOforce, yCOforce, xforce, yforce, xacc, yacc, mass)
+
     # Velocities
     for i in range(3):
         xvel[i] += xacc[i] * dt
@@ -109,68 +101,35 @@ for j in range(N):
         xpos[i] += xvel[i] * dt
         ypos[i] += yvel[i] * dt
 
-        # PLOT
+    return xvel, yvel, xpos, ypos
 
-        if (j%n==0):
-            plt.plot(xpos[i], ypos[i], marker = '.', color = colours[i], alpha = opacity[j//n])
-
-plt.grid()
-plt.show()
-
-
-
+Runge-Kutta method
 # Runge-Kutta Method
-# https://www.youtube.com/watch?v=m3W47PKXmYY
+# Sources:
+#   https://www.youtube.com/watch?v=m3W47PKXmYY
+#   https://trinket.io/glowscript/038b9f8cfc
 
-def derivative(xpos, ypos, xvel, yvel):
-
+def derivative(xpos, ypos, xvel, yvel, xacc, yacc):
     """ 
-    to use the Runge-Kutta method, we divide the system into 6 differential equations
+    to use the Runge-Kutta method, we divided the system into 6 differential equations
     v = dr/dt and a= dv/dt
-    this function receives positions and velocities for all three bodies as input (x and y direction)
-    and returns 12 derivatives (the velocities and accelerations in both x and y directions)
-    we pass all 12 derivatives in and out of the function because we use all 12 values in the RK4 method
+    this function receives positions, velocities and accelerations for all three bodies as input (x and y direction)
+    and returns 12 derivatives as a matrix (the velocities and accelerations in both x and y directions)
     """
-    
-    for i in range(3):
-        #print(order[i,1]+1, "on", order[i,0]+1)
-        
-        dist[i] = np.sqrt((xpos[order[i,1]]-xpos[order[i,0]])**2 + (ypos[order[i,1]]-ypos[order[i,0]])**2)
-        #print("distance =", dist[i])
-        
-        if (dist[i] != 0):
-            F = G * (mass[order[i,1]]*mass[order[i,0]]) / dist[i]**2 # force [N]
-            #print("F =",F)
-        else: # 2 bodies have the same position coordinates
-            xCOforce[i] = 0
-            yCOforce[i] = 0
-            #print(xforce[i], yforce[i])
-            continue
+    #Calculate acceleration
+    xacc, yacc = acceleration(xpos, ypos, xCOforce, yCOforce, xforce, yforce, xacc, yacc, mass)
 
-        xCOforce[i] = F * (xpos[order[i,1]]-xpos[order[i,0]]) / dist[i]
-        yCOforce[i] = F * (ypos[order[i,1]]-ypos[order[i,0]]) / dist[i]
-        #print("Fx =", xforce[i], "Fy =", yforce[i], "\n")
-
-    xforce[0] = xCOforce[0] + xCOforce[2] # acting on 1st body
-    yforce[0] = yCOforce[0] + yCOforce[2]
-    xforce[1] = xCOforce[1] - xCOforce[0] # acting on 2nd body
-    yforce[1] = yCOforce[1] - yCOforce[0]
-    xforce[2] = - xCOforce[1] - xCOforce[2] # acting on 3rd body
-    yforce[2] = - yCOforce[1] - yCOforce[2]
-
-    # Accelerations
-    for i in range(3):
-        xacc[i] = xforce[i] / mass[i]
-        yacc[i] = yforce[i] / mass[i]
     # Return 12 derivatives
     return np.array([xvel, yvel, xacc, yacc])
 
+#Runge-Kutta Method (4th order)
 
 def RK4(xpos, ypos, xvel, yvel, dt):
-    k1=derivative(xpos, ypos, xvel, yvel)
-    k2=derivative(xpos+0.5*dt*k1[0], ypos+0.5*dt*k1[1],xvel+0.5*dt*k1[2], yvel+0.5*dt*k1[3])
-    k3=derivative(xpos+0.5*dt*k2[0], ypos+0.5*dt*k2[1],xvel+0.5*dt*k2[2], yvel+0.5*dt*k2[3])
-    k4=derivative(xpos+dt*k3[0], ypos+dt*k3[1],xvel+dt*k3[2], yvel+dt*k3[3])
+    
+    k1=derivative(xpos, ypos, xvel, yvel, xacc, yacc)
+    k2=derivative(xpos+0.5*dt*k1[0], ypos+0.5*dt*k1[1],xvel+0.5*dt*k1[2], yvel+0.5*dt*k1[3], xacc, yacc)
+    k3=derivative(xpos+0.5*dt*k2[0], ypos+0.5*dt*k2[1],xvel+0.5*dt*k2[2], yvel+0.5*dt*k2[3], xacc, yacc)
+    k4=derivative(xpos+dt*k3[0], ypos+dt*k3[1],xvel+dt*k3[2], yvel+dt*k3[3], xacc, yacc)
 
     for i in range(3):
         xpos[i]+=dt/6*(k1[0, i]+2*k2[0, i]+2*k3[0, i]+k4[0,i])
@@ -179,21 +138,165 @@ def RK4(xpos, ypos, xvel, yvel, dt):
         yvel[i]+=dt/6*(k1[3, i]+2*k2[3, i]+2*k3[3, i]+k4[3,i])
     return xpos, ypos, xvel, yvel
 
+Leapfrog method
+#Leapfrog method
 
-# Trial initialization
+"""
+For this method, we have the velocities at half-time steps, and the position and the acceleration at integer time steps.
+"""
+
+Animation
+# ANIMATION
+
+# Frames for animation
+# Source:
+#   https://matplotlib.org/stable/users/explain/animations/animations.html
+
+def make_update(scat, x_hist, y_hist, lines, cm_point, method):
+    def update(frame):
+        #print(frame) #to see if it really runs
+        global xpos, ypos, xvel, yvel 
+        #use global to avoid passing these parameters every time we call this function, so this does not create new local variables
+        
+        if (method=="Euler"):
+            xvel, yvel, xpos, ypos=Euler(xpos, ypos, xvel, yvel, xacc, yacc)
+
+        if(method=="RK4"):
+             xpos, ypos, xvel, yvel = RK4(xpos, ypos, xvel, yvel, dt)
+        
+        else:
+            raise(ValueError('Invalid method. Please try "Euler" or "RK4"'))
+
+        # Center of mass
+        x_cm = sum(mass[i] * xpos[i] for i in range(3)) / sum(mass)
+        y_cm = sum(mass[i] * ypos[i] for i in range(3)) / sum(mass)
+
+        # update scatter positions
+        data = np.column_stack([xpos, ypos])
+        scat.set_offsets(data)
+
+        # update COM marker
+        cm_point.set_data([x_cm], [y_cm]) #pass arguments as arrays
+
+        # update trajectories
+        for i in range(3):
+            x_hist[i].append(xpos[i])
+            y_hist[i].append(ypos[i])
+            lines[i].set_data(x_hist[i], y_hist[i])
+
+            """if len(x_hist[i]) > 50: #pop tail if it's too long
+                x_hist[i].pop(0)
+                y_hist[i].pop(0)"""
+
+
+        return [scat, cm_point] + lines
+    return update #when we call the animation function, it runs with a different frame value in every loop
+
+## Initializations
+#INITIALIZATIONS
+
+# Initialization 1 (the original one, currently it does not work because of rescaling :( )
+
+scale = np.sqrt((2*G*1e4)/(2*np.cos(PI/6))) # magnitude of the velocities
+
+mass = [1e4,1e4,1e4] # randomly given by us for now
+xpos = [np.cos(PI/6), np.cos(5*PI/6), np.cos(3*PI/2)]
+ypos = [np.sin(PI/6), np.sin(5*PI/6), np.sin(3*PI/2)]
+xvel = [scale*np.cos(2*PI/3), scale*np.cos(4*PI/3), scale*np.cos(0)] # tangential velocities counter-clockwise
+yvel = [scale*np.sin(2*PI/3), scale*np.sin(4*PI/3), scale*np.sin(0)]
+
+#Initialization 2
+# (known stable initial position - 8)   https://trinket.io/glowscript/038b9f8cfc
+
+"""
+bodies on one line around origin, central symmetry
+two outer bodies have same velocity, the one in the middle has twice that in the opposite direction
+all bodies have the same mass
+"""
 
 mass = [1,1,1] 
 xpos = [0.97000436, -0.97000436, 0]
 ypos = [-0.24308753, 0.24308753, 0]
-xvel = [0.93240737/2, 0.93240737/2, -.93240737] # tangential velocities counter-clockwise
-yvel = [0.8643146/2, 0.8643146/2, -.8643146]
+xvel = [0.93240737/2, 0.93240737/2, -0.93240737] 
+yvel = [0.8643146/2, 0.8643146/2, -0.8643146]
+# Initialization 3
+# Sun Earth Mars
+# All numbers are scaled down to align with G=1
+
+mass = [1, 3*1e-6, 3.2*1e-7] 
+xpos = [0.0, 1, 1.5]
+ypos = [0.0, 0.0, 0.0]
+xvel = [0, 0, 0] 
+yvel = [-(3*1e-6*1+3.2*1e-7*0.8165), 1, 0.8165]
+
+## Computation with Euler
+# COMPUTATION & PLOT
+
+#Euler method on init. 2
+
+# Plot Initialization
+plt.figure(figsize=(5,5))
+plt.xlim(-1.3, 1.3)
+plt.ylim(-1.3, 1.3)
+for i in range(3):
+    plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
+
+for j in range(N):
+    # COMPUTATION
+
+    xvel, yvel, xpos, ypos=Euler(xpos, ypos, xvel, yvel, xacc, yacc)
+        
+    # Positions
+    for i in range(3):
+        # PLOT
+        if (j%(n/100)==0):
+            plt.plot(xpos[i], ypos[i], marker = '.', color = colours[i], alpha = opacity[j//n])
+
+plt.grid()
+plt.show()
+
+#Saving animation
+#Animation on Euler init. 2
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1.3, 1.3)
+ax.set_ylim(-1.3, 1.3)
+ax.set_aspect("equal")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.grid()
+
+# scatter for bodies
+scat = ax.scatter(xpos, ypos, s=20, c=colours)
+
+# line objects for trajectories
+lines = []
+for i in range(3):
+    line = ax.plot([], [], color=colours[i], alpha=0.3)[0]
+    lines.append(line)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'g+', markersize=8)[0]
+#ax.legend()  , label="Center of mass"
+
+# history buffers
+x_hist = [[] for _ in range(3)]
+y_hist = [[] for _ in range(3)]
+
+ani = animation.FuncAnimation(fig, make_update(scat, x_hist, y_hist, lines, cm_point, "Euler"), frames=100, interval=20)
+
+ani.save("test_Euler8_cm3.gif", fps=20, dpi=100) #animation in vs code does not work well so we saved it as a gif file
+
+
+## Computation with RK4
+#Plot of RK4 with init. 2
 
 plt.figure(figsize=(5,5))
 for i in range(3): #initial positions
     plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
 for j in range(N):
     xpos, ypos, xvel, yvel = RK4(xpos, ypos, xvel, yvel, dt)
-    if (j%(n//4)==0):
+    if (j%(n)==0):
         for i in range(3):
             plt.plot(xpos[i], ypos[i], '.', color=colours[i], alpha=opacity[j//n])
             
@@ -202,3 +305,83 @@ plt.ylim(-1.3, 1.3)
 plt.grid()
 plt.show()
 
+#Animation
+# https://matplotlib.org/stable/users/explain/animations/animations.html
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1.3, 1.3)
+ax.set_ylim(-1.3, 1.3)
+ax.set_aspect("equal")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.grid()
+
+# scatter for bodies
+scat = ax.scatter(xpos, ypos, s=20, c=colours)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'g+', markersize=8)[0]
+#ax.legend()  , label="Center of mass"
+
+# line objects for trajectories
+lines = []
+for i in range(3):
+    line, = ax.plot([], [], color=colours[i], alpha=0.6)
+    lines.append(line)
+
+# history buffers
+x_hist = [[] for _ in range(3)]
+y_hist = [[] for _ in range(3)]
+
+
+ani = animation.FuncAnimation(fig, make_update(scat, x_hist, y_hist, lines, cm_point, "RK4"), frames=200, interval=20)
+
+ani.save("test_RK48.gif", fps=20, dpi=100) #animation in vs code does not work well so we saved it as a gif file
+
+
+#RK4 on init. 3
+
+plt.figure(figsize=(5,5))
+for i in range(3): #initial positions
+    plt.plot(xpos[i], ypos[i], marker = '*', color = colours[i])
+for j in range(N):
+    xpos, ypos, xvel, yvel = RK4(xpos, ypos, xvel, yvel, dt)
+    if (j%(n)==0):
+        for i in range(3):
+            plt.plot(xpos[i], ypos[i], '.', color=colours[i], alpha=opacity[j//n])
+            
+plt.xlim(-2, 2)
+plt.ylim(-2,2)
+plt.grid()
+plt.show()
+
+#Animation 2
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
+ax.set_aspect("equal")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.grid()
+
+# scatter for bodies
+scat = ax.scatter(xpos, ypos, s=20, c=colours)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'g+', markersize=8)[0]
+#ax.legend()  , label="Center of mass"
+
+# line objects for trajectories
+lines = [] #do not know the length yet
+for i in range(3):
+    line = ax.plot([], [], color=colours[i], alpha=0.6)[0]
+    lines.append(line)
+
+# history buffers
+x_hist = [[] for _ in range(3)]
+y_hist = [[] for _ in range(3)]
+
+ani = animation.FuncAnimation(fig, make_update(scat, x_hist, y_hist, lines, cm_point, "RK4"), frames=100, interval=20)
+
+ani.save("test_SEM_RK4.gif", fps=20, dpi=100) #animation in vs code does not work well so we saved it as a gif file
