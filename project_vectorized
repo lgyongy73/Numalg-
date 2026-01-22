@@ -1,19 +1,19 @@
-## Shortcuts
+## SHORTCUTS
 """ 
 SHORTCUTS
 
 long comment : Alt + Shift + A
+split cell : Ctrl + Shift + -
+finish editing markdown : Ctrl + Alt + Enter
 """
-## Imports
-# IMPORTS
-
+## IMPORTS
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import constants # for G, but after scaling, we did not need it
 import matplotlib.animation as animation
 import time
 
-## Variables
+from scipy import constants # for G, but after scaling, we did not need it
+## VARIABLES
 """ 
 In our first version, we had seperate arrays for the x and y coordinates/velocities/accelerations, and an order array for the for loops:
 
@@ -33,34 +33,235 @@ yforce = np.zeros(4, dtype = float)
 
 order = np.array([[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]) # indexes in the order of usage of the 3 bodies (for "for" loop)
 """
-# VARIABLES
-
 # Number of bodies
-b=4
+b = 4
 
-# Timestep - Might change frequently
+# Timestep
 dt = 5e-2 
 
 # Arrays
-mass = np.zeros(b, dtype = float) # masses of the 4 bodies [kg]
+mass = np.zeros(b, dtype = float) # masses of b many bodies [kg]
 
 pos = np.zeros((b, 2), dtype=float) # x&y position coordinates [m]
 vel = np.zeros((b, 2), dtype=float) # x&y velocity components [m/s]
 acc = np.zeros((b, 2), dtype=float) # x&y acceleration components [m/s^2]
 
 # Constants
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
+objects = ["Sun","Earth","Mars","comet"]
+colours = ["orange","blue","red","black"] # colours of the celestial objects on the plots
 N = 100000 # number of steps
 n = 500 # number of plotted steps
 opacity = np.linspace(0.1,1,int(N/n)+1)
 
-G = 1 #constants.gravitational_constant # [m^3/(kg*s^2)]
+G = 1 # gravitational constant [m^3/(kg*s^2)]
 PI = np.pi # precise pi value
 
 print(type(mass),type(pos), type(vel), type(acc)) # for checking
-## Functions
-#FUNCTIONS
+## INITIALIZATIONS
+# Initialization 1
+# (known stable initial position - 8)   https://trinket.io/glowscript/038b9f8cfc
+"""
+bodies on one line around origin, central symmetry
+two outer bodies have same velocity, the one in the middle has twice that in the opposite direction
+all bodies have the same mass
+"""
 
+def init_1():
+    global b, mass, pos, vel, acc, dt, colours, N, n, steps, save_every
+    
+    b = 3
+
+    mass = np.array([1,1,1])
+    pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
+    vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
+    acc = np.zeros((b, 2), dtype=float)
+
+    dt = 5e-2
+
+    colours = ["black","blue","red"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 24000
+    save_every= 2
+
+    return
+
+init_1()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+# Initialization 2
+# Sun Earth Mars comet
+# All numbers are scaled down to align with G=1
+""" 
+Halley's comet
+eccentricity: e = 0.967
+perihelion: q = b*(1-e) where b = 17.8 AU (semi major axis)
+v_peri = sqrt((1+e)/q)
+ """
+
+def init_2():
+    global b, mass, pos, vel, acc, dt, objects, colours, N, n, steps, save_every
+    
+    b = 4
+
+    mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
+    pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
+    vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
+    acc = np.zeros((b,2), dtype=float)
+
+    dt = 5e-2
+
+    objects = ["Sun", "Earth", "Mars", "comet"]
+    colours = ["orange", "blue", "red", "black"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 24000
+    save_every=20
+
+    return
+
+init_2()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+# Initialization 3
+# (known stable initial position - triple rings lined up)   https://github.com/mws262/MAE5730_examples/blob/master/3BodySolutions/getSolutionNum.m
+# https://www.youtube.com/watch?v=8_RRZcqBEAc
+
+
+def init_3():
+    global b, mass, pos, vel, acc, dt, objects, colours, N, n, steps, save_every
+    
+    b = 3
+
+    mass = np.array([1,1,1])
+    pos = np.array([[-0.0347, 1.1856], [0.2693, -1.0020], [-0.2328, -0.5978]])
+    vel = np.array([[0.2495, -0.1076], [0.2059, -0.9396], [-0.4553, 1.0471]]) 
+    acc = np.zeros((b, 2), dtype=float)
+     
+    dt = 5e-2
+
+    objects = ["Sun","Earth","Mars"]
+    colours = ["orange","blue","red"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 2000
+    save_every=10
+
+    return
+
+init_3()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+# Initialization 4
+# (known stable initial position - flower)   https://github.com/mws262/MAE5730_examples/blob/master/3BodySolutions/getSolutionNum.m
+
+
+def init_4():
+    global b, mass, pos, vel, acc, dt, objects, colours, N, n, steps, save_every
+    
+    b = 3
+
+    mass = np.array([1,1,1])
+    pos = np.array([[-0.602885898116520, 1.059162128863347-1], [0.252709795391000, 1.058254872224370-1], [-0.355389016941814, 1.038323764315145-1]])
+    vel = np.array([[0.122913546623784, 0.747443868604908], [-0.019325586404545, 1.369241993562101], [-0.103587960218793, -2.116685862168820]]) 
+    acc = np.zeros((b, 2), dtype=float)
+    
+            
+    dt = 5e-2
+
+    objects = ["Sun","Earth","Mars"]
+    colours = ["orange","blue","red"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 2000
+    save_every=10
+
+    return
+
+init_4()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+# Initialization 5
+# Sun Earth Mars
+# All numbers are scaled down to align with G=1
+
+def init_5():
+    global b, mass, pos, vel, acc, dt, objects, colours, N, n, steps, save_every
+    
+    b = 3
+
+    mass = np.array([1, 3*1e-6, 3.2*1e-7] )
+    pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0]])
+    vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165]])
+    acc = np.zeros((b,2), dtype=float)
+
+    dt = 5e-2
+
+    objects = ["Sun", "Earth", "Mars"]
+    colours = ["orange", "blue", "red"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 24000
+    save_every=20
+
+    return
+
+init_5()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+# Initialization 6
+# (known stable initial position - oval, catface, starship)   https://github.com/mws262/MAE5730_examples/blob/master/3BodySolutions/getSolutionNum.m
+
+
+def init_6():
+    global b, mass, pos, vel, acc, dt, objects, colours, N, n, steps, save_every
+    
+    b = 3
+
+    mass = np.array([1,1,1])
+    pos = np.array([[0.536387073390469, 0.054088605007709], [-0.252099126491433, 0.694527327749042], [-0.275706601688421, -0.335933589317989]])
+    vel = np.array([[-0.569379585580752, 1.255291102530929], [0.079644615251500, -0.458625997341406], [0.489734970329286, -0.796665105189482 ]]) 
+    acc = np.zeros((b, 2), dtype=float)
+
+    dt = 5e-2
+
+    objects = ["Sun","Earth","Mars"]
+    colours = ["orange","blue","red"] # colours of the celestial objects on the plots
+    N = 100000 # number of steps
+    n = 500 # number of plotted steps
+
+    steps = 2000
+    save_every=10
+
+    return
+
+init_6()
+print(type(pos), type(vel), type(mass))
+
+# Initial positions
+plt.plot(pos[:,0],pos[:,1], '.')
+plt.show()
+## FUNCTIONS
 #Function to compute acceleration
 
 def acceleration (pos, acc, mass):
@@ -70,18 +271,20 @@ def acceleration (pos, acc, mass):
     pos  : (b,2)
     mass : (b,)
     """
+
     r = pos[:, None, :] - pos[None, :, :]      # (b, 1, 2) - (1, b, 2) = (b, b, 2) we inserted a new axis in the middle. r[i, j] = pos[i] - pos[j]
+    #print(pos[:, None, :])
+    #print(pos[None, :, :])
+    #print(r)
     dist = np.linalg.norm(r, axis=2)           # (b,b), axis = 0 -> down the rows, axis = 1 -> across columns, axis = 2 -> depth (x/y components)
-        # dist[i, j] = sqrt(r[i, j, 0]**2 + r[i, j, 1]**2)
-    same = dist > 0                            # boolean
+    #print(dist)                               # dist[i, j] = sqrt(r[i, j, 0]**2 + r[i, j, 1]**2)
+    same = dist > 0                            # boolean (to avoid division by 0)
     inv_dist3 = np.zeros_like(dist)
     inv_dist3[same] = 1.0 / dist[same]**3
 
     acc = -G * np.sum(mass[None, :, None] * r * inv_dist3[:, :, None], axis=1) #(b, 2)
     return acc
-Euler method
-#Euler method
-
+## **EULER METHOD**
 def Euler(pos, vel, acc):
     acc = acceleration(pos, acc, mass)
 
@@ -90,23 +293,26 @@ def Euler(pos, vel, acc):
     pos = pos + vel * dt
     
     return pos, vel
-Runge-Kutta method
-# Runge-Kutta Method
+## **RUNGE-KUTTA METHOD**
 # Converting the second-order ODE into two first-order ODEs
-# Sources:
-#   https://www.youtube.com/watch?v=m3W47PKXmYY
-#   https://trinket.io/glowscript/038b9f8cfc
+"""
+Sources:
+- https://www.youtube.com/watch?v=m3W47PKXmYY
+- https://trinket.io/glowscript/038b9f8cfc
+"""
 
 def RK4(pos, vel, dt):
-    k1_v = acceleration(pos, acc, mass)
-    k1_x = vel
+    k1_v = acceleration(pos, acc, mass) # d/dt(v)
+    k1_x = vel # d/dt(x)
 
+    # after a half-step
     k2_v = acceleration(pos + 0.5*dt*k1_x, acc, mass)
     k2_x = vel + 0.5*dt*k1_v
 
     k3_v = acceleration(pos + 0.5*dt*k2_x, acc, mass)
     k3_x = vel + 0.5*dt*k2_v
 
+    # after a full step
     k4_v = acceleration(pos + dt*k3_x, acc, mass)
     k4_x = vel + dt*k3_v
 
@@ -114,25 +320,33 @@ def RK4(pos, vel, dt):
     vel = vel + (dt/6)*(k1_v + 2*k2_v + 2*k3_v + k4_v)
 
     return pos, vel
-Leapfrog method
-#Leapfrog method
-
+## **LEAPFROG METHOD**
+# symplectic integrator
 """
 For this method, we have the velocities at half-time steps, and the position and the acceleration at integer time steps.
 """
+
+"""
 def Leapfrog(pos, vel, acc):
-    vel_half = vel + 0.5 * acc * dt
-    pos = pos + vel_half * dt
+    vel_halfstep = vel + acc * dt/2 # v(t+dt/2)
+    pos = pos + vel_halfstep * dt
     acc = acceleration(pos, acc,  mass)
-    vel = vel_half + 0.5 * acc * dt
+    vel = vel_halfstep + acc * dt/2 # v(t+dt)
     return pos, vel, acc
-Step computation
+"""
+
+def Leapfrog(pos, vel, acc):
+    pos = pos + vel * dt
+    acc = acceleration(pos, acc,  mass)
+    vel = vel + acc * dt # v(t+dt/2)
+    return pos, vel, acc
+## STEP COMPUTATION
 def step_system(method):
     global pos, vel, acc
         # use global to avoid passing these parameters every time we call this function, so this does not create new local variables
         
     if (method=="Euler"):
-        pos, vel=Euler(pos, vel, acc)
+        pos, vel = Euler(pos, vel, acc)
 
     elif(method=="RK4"):
         pos, vel = RK4(pos, vel, dt)
@@ -141,10 +355,10 @@ def step_system(method):
         pos, vel, acc = Leapfrog(pos, vel, acc)
     
     else:
-        raise(ValueError('Invalid method. Please try "Euler" or "RK4"'))
+        raise(ValueError('Invalid method. Please try "Euler", "RK4" or "Leapfrog"'))
 
-Energy, angular momentum
-#Total energy
+## ENERGY, ANGULAR MOMENTUM
+# Total energy
 
 def total_energy(pos, vel, mass, G):
     #kinetic
@@ -158,30 +372,56 @@ def total_energy(pos, vel, mass, G):
             PE -= G * mass[i] * mass[j] / r
 
     return KE + PE
-
-#Angular momentum
+# Angular momentum
 
 def total_angular_momentum(pos, vel, mass):
     
-    L=np.sum(mass * (pos[:,0]*vel[:,1] - pos[:,1]*vel[:,0]))  # L = m * (r x v)
+    L = np.sum(mass * (pos[:,0]*vel[:,1] - pos[:,1]*vel[:,0]))  # L = m * (r x v)
     
     return L
+## PLOTTING
+# Plot initialization
 
-Animation
+def plot_init():
+    plt.figure(figsize=(10,5))
+    plt.xlim(-5, 40)
+    plt.ylim(-10, 15)
+    
+    for i in range(b):
+        plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+    
+    return
+# Plot formatting
+
+def plot_format(method):
+    plt.title(f"{method} method, {N} steps, plotting every {n}th step, dt = {dt}")
+    plt.xlabel("x [AU]")
+    plt.ylabel("y [AU]")
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
+## ANIMATION
+# Simulation
 """ 
 This function can run the whole simulation before plotting, so computation is faster
- """
+"""
 
 def simulate(method, pos, vel, acc, steps, save_every):
     pos_hist = np.zeros((steps//save_every, b, 2))
-    """pos = pos0.copy()
+    """
+    pos = pos0.copy()
     vel = vel0.copy()
-    acc = acc0.copy()"""
+    acc = acc0.copy()
+    """
 
     for k in range(steps):
         if (k%save_every==0):  # to make things faster, we only save every save_every'th step
             pos_hist[k//save_every] = pos
 
+        #step_system(method) # does not work, don't use
+        
         if method == "Euler":
             pos, vel = Euler(pos, vel, acc)
         elif method == "RK4":
@@ -190,14 +430,14 @@ def simulate(method, pos, vel, acc, steps, save_every):
             pos, vel, acc = Leapfrog(pos, vel, acc)
         else:
             raise ValueError("Invalid method")
+           
 
     return pos_hist
-
-# ANIMATION
-
 # Frames for animation
-# Source:
-#   https://matplotlib.org/stable/users/explain/animations/animations.html
+"""
+Source:
+- https://matplotlib.org/stable/users/explain/animations/animations.html
+"""
 
 def make_update(scat, traj, lines, cm_point):
     def update(frame):  # frame provided by FuncAnimation
@@ -223,81 +463,16 @@ def make_update(scat, traj, lines, cm_point):
         # Return artists to update
         return [scat, cm_point] + lines
     return update  #when we call the animation function, it runs with a different frame value in every loop
-## Initializations
-#INITIALIZATIONS
-
-# Sun Earth Mars comet
-# All numbers are scaled down to align with G=1
-b=4
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
-#Initialization 2
-# (known stable initial position - 8)   https://trinket.io/glowscript/038b9f8cfc
-
-"""
-bodies on one line around origin, central symmetry
-two outer bodies have same velocity, the one in the middle has twice that in the opposite direction
-all bodies have the same mass
-"""
-b=3
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 2000
-save_every=10
-
-print(type(pos), type(vel), type(mass))
-# 4-body 
+## **4-BODIES**
 ## Computation with Euler
-# COMPUTATION & PLOT
+# Euler method on SEMC (Sun-Earth-Mars-comet)
 
-#Euler method on SEMC (Sun-Earth-Mars-comet)
-b=4
+# Initialization
+init_2()
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-# Plot Initialization
-plt.figure(figsize=(10,5))
-plt.xlim(-5, 40)
-plt.ylim(-10, 15)
-for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
-
+# Plot initialization
+plot_init()
+    
 # COMPUTATION
 for j in range(N):
     pos, vel = Euler(pos, vel, acc)
@@ -308,38 +483,17 @@ for j in range(N):
         if (j%(n)==0):
             plt.plot(pos[i, 0], pos[i, 1], marker = '.', color = colours[i], alpha = opacity[j//n])
 
-plt.title(f"Euler method, {N} steps, plotting every {n}th step, dt = {dt}")
-plt.xlabel("x [AU]")
-plt.ylabel("y [AU]")
-plt.legend()
-plt.grid()
-plt.show()
-# COMPUTATION & PLOT
+# Plot formating
+method = "Euler"
+plot_format(method)
+# Euler method on SEMC (Sun-Earth-Mars-comet)
 
-#Euler method on SEMC (Sun-Earth-Mars-comet)
-b=4
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
+# Initialization
+init_2()
 dt = 5e-3
 
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-# Plot Initialization
-plt.figure(figsize=(10,5))
-plt.xlim(-5, 40)
-plt.ylim(-10, 15)
-for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+# Plot initialization
+plot_init()
 
 # COMPUTATION
 for j in range(N):
@@ -351,32 +505,17 @@ for j in range(N):
         if (j%(n)==0):
             plt.plot(pos[i, 0], pos[i, 1], marker = '.', color = colours[i], alpha = opacity[j//n])
 
-plt.title(f"Euler method, {N} steps, plotting every {n}th step, dt = {dt}")
-plt.xlabel("x [AU]")
-plt.ylabel("y [AU]")
-plt.legend()
-plt.grid()
-plt.show()
-#Saving animation
-#Euler method on SEMC (Sun-Earth-Mars-comet)
-b=4
+# Plot formating
+method = "Euler"
+plot_format(method)
+# Euler method on SEMC (Sun-Earth-Mars-comet)
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
+# Initialization
+init_2()
 
 #Plot
+title = "E_24000-20_5e-2.gif"
+
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.set_xlim(-5, 40)
 ax.set_ylim(-10, 15)
@@ -387,9 +526,9 @@ ax.set_ylabel("y [AU]")
 
 #Plot initialization
 for i in range(b):
-    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label = objects[i])
 
-traj = simulate("Euler", pos, vel, acc, steps, save_every)
+traj = simulate(method, pos, vel, acc, steps, save_every)
 #print(traj.shape[0]) #checking shapes
 
 # scatter for bodies
@@ -410,10 +549,10 @@ cm_point = ax.plot([], [], 'kx', markersize=1, label="center of mass")[0]
 
 ax.legend()
 ax.grid()
+
 ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
 
-ani.save("E_24000-20_5e-2.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
-
+ani.save(title, writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 """Energy diagram - not really interesting, there will be a comparison later
 
 energy_hist_E= []
@@ -443,37 +582,15 @@ axes[1].set_ylabel("L")
 plt.tight_layout()
 plt.grid()
 plt.show()
-
 """
 ## Computation with RK4
-# COMPUTATION & PLOT
-
 #RK4 method on SEMC (Sun-Earth-Mars-comet)
-b=4
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
+# Initialization
+init_2()
 
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-# Plot Initialization
-plt.figure(figsize=(10,5))
-plt.xlim(-5, 40)
-plt.ylim(-10, 15)
-
-#Initialization
-for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+# Plot initialization
+plot_init()
 
 # COMPUTATION
 for j in range(N):
@@ -485,30 +602,13 @@ for j in range(N):
         if (j%(n)==0):
             plt.plot(pos[i, 0], pos[i, 1], marker = '.', color = colours[i], alpha = opacity[j//n])
 
-plt.title(f"Runge-Kutta method, {N} steps, plotting every {n}th step, dt = {dt}")
-plt.xlabel("x [AU]")
-plt.ylabel("y [AU]")
-plt.legend()
-plt.grid()
-plt.show()
-#Saving animation
+# Plot formating
+method = "RK4"
+plot_format(method)
 #RK4 method on SEMC (Sun-Earth-Mars-comet)
-b=4
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
+# Initialization
+init_2()
 
 #Plot
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -549,36 +649,16 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), fra
 ani.save("RK4_24000-20_5e-2.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
 ## Computation with Leapfrog
-# COMPUTATION & PLOT
-
 #Leapfrog method on SEMC (Sun-Earth-Mars-comet)
-b=4
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
+# Initialization
+init_2()
 
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-# Plot Initialization
-plt.figure(figsize=(10,5))
-plt.xlim(-5, 40)
-plt.ylim(-10, 15)
-
-#Initialization
-for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+# Plot initialization
+plot_init()
 
 # COMPUTATION
+vel = vel + acc * dt/2 # velocity at half-step init.
 for j in range(N):
     pos, vel, acc = Leapfrog(pos, vel, acc)
         
@@ -588,42 +668,20 @@ for j in range(N):
         if (j%(n)==0):
             plt.plot(pos[i, 0], pos[i, 1], marker = '.', color = colours[i], alpha = opacity[j//n])
 
-plt.title(f"Leapfrog method, {N} steps, plotting every {n}th step, dt = {dt}")
-plt.xlabel("x [AU]")
-plt.ylabel("y [AU]")
-plt.legend()
-plt.grid()
-plt.show()
-# COMPUTATION & PLOT
-
+# Plot formating
+method = "Leapfrog"
+plot_format(method)
 #Leapfrog method on SEMC (Sun-Earth-Mars-comet)
-b=4
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
+# Initialization
+init_2()
 dt = 5e-3
 
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-# Plot Initialization
-plt.figure(figsize=(10,5))
-plt.xlim(-5, 40)
-plt.ylim(-10, 15)
-
-#Initialization
-for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i], label=objects[i])
+# Plot initialization
+plot_init()
 
 # COMPUTATION
+vel = vel + acc * dt/2 # velocity at half-step init.
 for j in range(N):
     pos, vel, acc = Leapfrog(pos, vel, acc)
         
@@ -633,30 +691,13 @@ for j in range(N):
         if (j%(n)==0):
             plt.plot(pos[i, 0], pos[i, 1], marker = '.', color = colours[i], alpha = opacity[j//n])
 
-plt.title(f"Leapfrog method, {N} steps, plotting every {n}th step, dt = {dt}")
-plt.xlabel("x [AU]")
-plt.ylabel("y [AU]")
-plt.legend()
-plt.grid()
-plt.show()
-#Saving animation
-#Leapfrog method on SEMC (Sun-Earth-Mars-comet)
-b=4
+# Plot formating
+method = "Leapfrog"
+plot_format(method)
+# Leapfrog method on SEMC (Sun-Earth-Mars-comet)
 
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
+# Initialization
+init_2()
 
 #Plot
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -696,26 +737,11 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), fra
 
 ani.save("L_24000-20_5e-2.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
-## Comparison
+## COMPARISON
 #Error compariosn
 
 # Initialization 
-b=4
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
-dt = 5e-2
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
+init_2()
 
 print(type(pos), type(vel), type(mass))
 
@@ -733,11 +759,7 @@ for i in range(N):
 
 
 # Initialize again
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
+init_2()
 
 print(type(pos), type(vel), type(mass))
 
@@ -821,22 +843,8 @@ plt.show()
 #Error compariosn
 
 # Initialization 
-b=4
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
-
+init_2()
 dt = 5e-4
-
-objects = ["Sun", "Earth", "Mars", "comet"]
-colours = ["red","blue","black","green"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
 
 print(type(pos), type(vel), type(mass))
 
@@ -854,11 +862,8 @@ for i in range(N):
 
 
 # Initialize again
-
-mass = np.array([1, 3*1e-6, 3.2*1e-7, 1.1e-16] )
-pos = np.array([[0.0, 0.0], [1, 0.0], [1.5, 0.0], [-0.586, 0.0]])
-vel = np.array([[0, -(3*1e-6*1 + 3.2*1e-7*0.8165)], [0, 1], [0,  0.8165], [0.0, -1.83]])
-acc = np.zeros((b,2), dtype=float)
+init_2()
+dt = 5e-4
 
 print(type(pos), type(vel), type(mass))
 
@@ -937,54 +942,21 @@ axes[1,1].grid()
 
 plt.tight_layout()
 plt.show()
-# 3-body
-## Initialization
-#INITIALIZATIONS
-# (known stable initial position - 8)   https://trinket.io/glowscript/038b9f8cfc
-
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
-## Euler method
-# COMPUTATION & PLOT
-
-#Initialization
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
+## **3-BODIES**
+## Computation with Euler
+# Initialization
+init_1()
+save_every = 20
 
 # Plot Initialization
 plt.figure(figsize=(5,5))
 plt.xlim(-1.5, 1.5)
 plt.ylim(-1.5, 1.5)
 for i in range(b):
-    plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = "red", label="original position")
+    if(i==0):
+        plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = "red", label = "original position")
+    else:
+        plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = "red")
 
 for j in range(N):
     # COMPUTATION
@@ -1002,7 +974,7 @@ pos = np.array([[0.97000436+0.001, -0.24308753], [-0.97000436, 0.24308753], [0, 
 vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
 acc = np.zeros((b, 2), dtype=float)
 
-plt.plot(pos[0, 0], pos[0, 1], marker = 'o', color = "blue", label="changed initial position")
+plt.plot(pos[0, 0], pos[0, 1], marker = 'o', color = "blue", label="changed initial positions")
 for i in range(1,b):
     plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = "blue")
 
@@ -1020,26 +992,10 @@ plt.grid()
 plt.show()
 
 #alpha = opacity[j//n]
-#Saving animation
-#Animation on Euler init. !
+#Animation on Euler init.
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
+# Initialization
+init_1()
 
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.xlim(-1.5, 1.5)
@@ -1073,26 +1029,12 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj_end, lines, cm_point),
 
 ani.save("Euler_3body_init_end_short.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
-#Saving animation
-#Animation on Euler init. !
+#Animation on Euler init.
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436+0.001, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
+# Initialization
+init_1()
+pos[0,0] = 0.97000436+0.001
 steps = 31000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
 
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.xlim(-1.5, 1.5)
@@ -1125,27 +1067,10 @@ cm_point = ax.plot([], [], 'kx', markersize=1)[0]
 ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
 
 ani.save("Euler_3body_changed.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
-
-## Runge-Kutta
-# COMPUTATION & PLOT
-
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
+## Computation with RK4
+# Initialization
+init_1()
+save_every = 20
 
 # Plot Initialization
 plt.figure(figsize=(5,5))
@@ -1187,26 +1112,11 @@ plt.grid()
 plt.show()
 
 #alpha = opacity[j//n]
-#Saving animation
-#Animation on RK4 init. 2
+#Animation on RK4 changed init.
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
+# Initialization
+init_1()
 steps = 50000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
 
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.xlim(-1.5, 1.5)
@@ -1240,26 +1150,11 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), fra
 
 ani.save("RK4_3body_init.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
-#Saving animation
-#Animation on RK4 init. 2
+#Animation on RK4 init.
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436+0.001, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
+# Initialization
+init_1()
+pos[0,0] = 0.97000436+0.001
 
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.xlim(-1.5, 1.5)
@@ -1293,26 +1188,14 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), fra
 
 ani.save("RK4_3body_changed.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
-## Leapfrog
+## Computation with Leapfrog
 # COMPUTATION & PLOT
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 10000 # number of steps
-n = 50 # number of plotted steps
-
+# Initialization
+init_1()
+N = 10000
+n = 50
 steps = 3000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
 
 # Plot Initialization
 plt.figure(figsize=(5,5))
@@ -1354,26 +1237,11 @@ plt.grid()
 plt.show()
 
 #alpha = opacity[j//n]
-#Saving animation
-#Animation on Leapfrog init. 2
+#Animation on Leapfrog init.
 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
+# Initialization
+init_1()
 steps = 3000
-save_every=2
-
-print(type(pos), type(vel), type(mass))
 
 fig, ax = plt.subplots(figsize=(5, 5))
 plt.xlim(-1.5, 1.5)
@@ -1407,27 +1275,11 @@ ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), fra
 
 ani.save("Leapfrog_3body_init.gif", writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
 
-## Comparison
-#Energy diagram comparison
+## COMPARISON
+# Energy diagram comparison
 
-# Initialization 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
+# Initialization
+init_1()
 
 energy_hist_E= np.zeros(N, dtype=float)
 l_hist_E = np.zeros(N, dtype=float)
@@ -1443,13 +1295,7 @@ for i in range(N):
 
 
 # Initialize again
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-print(type(pos), type(vel), type(mass))
+init_1()
 
 energy_hist_RK= np.zeros(N, dtype=float)
 l_hist_RK = np.zeros(N, dtype=float)
@@ -1537,29 +1383,10 @@ axes[1,2].grid()
 
 plt.tight_layout()
 plt.show()
+# Error compariosn
 
-
-
-#Error compariosn
-
-# Initialization 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-dt = 5e-2
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
+# Initialization
+init_1()
 
 energy_hist_E= np.zeros(N, dtype=float)
 l_hist_E = np.zeros(N, dtype=float)
@@ -1575,6 +1402,7 @@ for i in range(N):
 
 
 # Initialize again
+init_1()
 
 mass = np.array([1,1,1])
 pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
@@ -1658,26 +1486,11 @@ axes[1,1].grid()
 
 plt.tight_layout()
 plt.show()
-#Error compariosn
+# Error compariosn
 
-# Initialization 
-b=3
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
+# Initialization
+init_1()
 dt = 5e-4
-
-colours = ["red","blue","black"] # colours of the celestial objects on the plots
-N = 100000 # number of steps
-n = 500 # number of plotted steps
-
-steps = 24000
-save_every=20
-
-print(type(pos), type(vel), type(mass))
 
 energy_hist_E= np.zeros(N, dtype=float)
 l_hist_E = np.zeros(N, dtype=float)
@@ -1693,13 +1506,8 @@ for i in range(N):
 
 
 # Initialize again
-
-mass = np.array([1,1,1])
-pos = np.array([[0.97000436, -0.24308753], [-0.97000436, 0.24308753], [0, 0]])
-vel = np.array([[0.93240737/2, 0.8643146/2], [0.93240737/2, 0.8643146/2], [-0.93240737, -0.8643146]]) 
-acc = np.zeros((b, 2), dtype=float)
-
-print(type(pos), type(vel), type(mass))
+init_1()
+dt = 5e-4
 
 energy_hist_RK= np.zeros(N, dtype=float)
 l_hist_RK = np.zeros(N, dtype=float)
@@ -1776,7 +1584,9 @@ axes[1,1].grid()
 
 plt.tight_layout()
 plt.show()
-b=3
+# Computation time
+
+b = 3
 dt = 5e-2
 
 methods = ["Euler", "RK4", "Leapfrog"]
@@ -1842,3 +1652,349 @@ plt.tight_layout()
 plt.show()
 
 print(Ns)
+## Other stable initial conditions
+# Triple rings
+
+init_3()
+#N=1000
+#n=2
+dt=0.001
+
+# Plot Initialization
+plt.figure(figsize=(5,5))
+
+for i in range(b):
+    plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = colours[i])
+
+for j in range(N):
+    # COMPUTATION
+    pos, vel = RK4(pos, vel, dt)
+        
+    # Positions
+    for i in range(b):
+        # PLOT
+        if (j%(n)==0):
+            plt.plot(pos[i, 0], pos[i, 1], marker=".", color = colours[i], alpha=opacity[j//n])
+
+
+plt.title(f"RK4 method, {N} steps, plotting every {n}th step, dt = {dt}")
+plt.xlabel("x [AU]")
+plt.ylabel("y [AU]")
+plt.legend()
+plt.grid()
+plt.show()
+
+#alpha = opacity[j//n]
+
+# Plot formating
+#method = "Euler"
+#plot_format(method)
+# Triple rings animation
+
+# Initialization
+init_3()
+dt=1e-3
+steps=24000
+save_every=24
+method = "RK4"
+
+#Plot
+title = "triple_rings.gif"
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1.6, 1.6)
+ax.set_ylim(-1.6, 1.6)
+ax.set_title(f"RK4, {steps} steps, plotting every {save_every}th step, dt = {dt}")
+ax.set_aspect("equal")
+ax.set_xlabel("x [AU]")
+ax.set_ylabel("y [AU]")
+
+#Plot initialization
+for i in range(b):
+    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i])
+
+traj_full = simulate(method, pos, vel, acc, steps, save_every)
+traj=traj_full[600:]
+#print(traj.shape[0]) #checking shapes
+
+# scatter for bodies
+scat = ax.scatter(traj[0, :, 0], traj[0, :, 1], s=20, c=colours)
+
+#print(colours) 
+#print(len(colours), type(colours))
+
+# line objects for trajectories
+lines = []
+for color in colours:
+    line = ax.plot([], [], color=color, alpha=0.8, linewidth=0.3)[0]
+    lines.append(line)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'kx', markersize=1, label="center of mass")[0]
+#ax.legend()  , label="Center of mass"
+
+ax.legend()
+ax.grid()
+
+ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
+
+ani.save(title, writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
+#Flowers in a circle
+
+init_4()
+#N=1000
+#n=2
+dt=0.001
+
+# Plot Initialization
+plt.figure(figsize=(5,5))
+
+for i in range(b):
+    plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = colours[i])
+
+for j in range(N):
+    # COMPUTATION
+    pos, vel = RK4(pos, vel, dt)
+        
+    # Positions
+    for i in range(b):
+        # PLOT
+        if (j%(n)==0):
+            plt.plot(pos[i, 0], pos[i, 1], marker=".", color = colours[i], alpha=opacity[j//n])
+
+
+plt.title(f"RK4 method, {N} steps, plotting every {n}th step, dt = {dt}")
+plt.xlabel("x [AU]")
+plt.ylabel("y [AU]")
+plt.legend()
+plt.grid()
+plt.show()
+
+#alpha = opacity[j//n]
+
+# Plot formating
+#method = "Euler"
+#plot_format(method)
+# Flowers in a circle
+
+# Initialization
+init_4()
+dt=1e-3
+steps=24000
+save_every=12
+method = "RK4"
+
+#Plot
+title = "flowers_in_a_circle.gif"
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-0.8, 0.3)
+ax.set_ylim(-0.5, 0.6)
+ax.set_title(f"RK4, {steps} steps, plotting every {save_every}th step, dt = {dt}")
+ax.set_aspect("equal")
+ax.set_xlabel("x [AU]")
+ax.set_ylabel("y [AU]")
+
+#Plot initialization
+for i in range(b):
+    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i])
+
+traj_full = simulate(method, pos, vel, acc, steps, save_every)
+traj=traj_full[:600]
+#print(traj.shape[0]) #checking shapes
+
+# scatter for bodies
+scat = ax.scatter(traj[0, :, 0], traj[0, :, 1], s=20, c=colours)
+
+#print(colours) 
+#print(len(colours), type(colours))
+
+# line objects for trajectories
+lines = []
+for color in colours:
+    line = ax.plot([], [], color=color, alpha=0.8, linewidth=0.3)[0]
+    lines.append(line)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'kx', markersize=1, label="center of mass")[0]
+#ax.legend()  , label="Center of mass"
+
+ax.legend()
+ax.grid()
+
+ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
+
+ani.save(title, writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
+# Sun Earth Mars
+
+init_5()
+#N=1000
+#n=2
+dt=0.001
+
+# Plot Initialization
+plt.figure(figsize=(5,5))
+
+for i in range(b):
+    plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = colours[i])
+
+for j in range(N):
+    # COMPUTATION
+    pos, vel = RK4(pos, vel, dt)
+        
+    # Positions
+    for i in range(b):
+        # PLOT
+        if (j%(n)==0):
+            plt.plot(pos[i, 0], pos[i, 1], marker=".", color = colours[i], alpha=opacity[j//n])
+
+
+plt.title(f"RK4 method, {N} steps, plotting every {n}th step, dt = {dt}")
+plt.xlabel("x [AU]")
+plt.ylabel("y [AU]")
+plt.legend()
+plt.grid()
+plt.show()
+
+#alpha = opacity[j//n]
+
+# Plot formating
+#method = "Euler"
+#plot_format(method)
+# Sun Earth Mars
+
+# Initialization
+init_5()
+dt=1e-3
+steps=30000
+save_every=30
+method = "RK4"
+
+#Plot
+title = "Sun_Earth_Mars.gif"
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1.6, 1.6)
+ax.set_ylim(-1.6, 1.6)
+ax.set_title(f"RK4, {steps} steps, plotting every {save_every}th step, dt = {dt}")
+ax.set_aspect("equal")
+ax.set_xlabel("x [AU]")
+ax.set_ylabel("y [AU]")
+
+#Plot initialization
+for i in range(b):
+    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i])
+
+traj_full = simulate(method, pos, vel, acc, steps, save_every)
+traj=traj_full[:600]
+#print(traj.shape[0]) #checking shapes
+
+# scatter for bodies
+scat = ax.scatter(traj[0, :, 0], traj[0, :, 1], s=20, c=colours)
+
+#print(colours) 
+#print(len(colours), type(colours))
+
+# line objects for trajectories
+lines = []
+for color in colours:
+    line = ax.plot([], [], color=color, alpha=0.8, linewidth=0.3)[0]
+    lines.append(line)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'kx', markersize=1, label="center of mass")[0]
+#ax.legend()  , label="Center of mass"
+
+ax.legend()
+ax.grid()
+
+ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
+
+ani.save(title, writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
+# Oval, catface, starship
+
+init_6()
+#N=80000
+#n=80
+dt=0.0001
+
+# Plot Initialization
+plt.figure(figsize=(5,5))
+
+for i in range(b):
+    plt.plot(pos[i, 0], pos[i, 1], marker = 'o', color = colours[i])
+
+for j in range(N):
+    # COMPUTATION
+    pos, vel = RK4(pos, vel, dt)
+        
+    # Positions
+    for i in range(b):
+        # PLOT
+        if (j%(n)==0):
+            plt.plot(pos[i, 0], pos[i, 1], marker=".", color = colours[i], alpha=opacity[j//n])
+
+
+plt.title(f"RK4 method, {N} steps, plotting every {n}th step, dt = {dt}")
+plt.xlabel("x [AU]")
+plt.ylabel("y [AU]")
+plt.legend()
+plt.grid()
+plt.show()
+
+#alpha = opacity[j//n]
+
+# Plot formating
+#method = "Euler"
+#plot_format(method)
+# Oval, catface, starship
+
+# Initialization
+init_6()
+dt=1e-4
+steps=100000
+save_every=200
+method = "RK4"
+
+#Plot
+title = "oval_catface_starship.gif"
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1.5, 1.6)
+ax.set_ylim(-1.5, 1.6)
+ax.set_title(f"RK4, {steps} steps, plotting every {save_every}th step, dt = {dt}")
+ax.set_aspect("equal")
+ax.set_xlabel("x [AU]")
+ax.set_ylabel("y [AU]")
+
+#Plot initialization
+for i in range(b):
+    ax.plot(pos[i, 0], pos[i, 1], marker = '*', color = colours[i])
+
+traj_full = simulate(method, pos, vel, acc, steps, save_every)
+traj=traj_full[:]
+#print(traj.shape[0]) #checking shapes
+
+# scatter for bodies
+scat = ax.scatter(traj[0, :, 0], traj[0, :, 1], s=20, c=colours)
+
+#print(colours) 
+#print(len(colours), type(colours))
+
+# line objects for trajectories
+lines = []
+for color in colours:
+    line = ax.plot([], [], color=color, alpha=0.8, linewidth=0.3)[0]
+    lines.append(line)
+
+# center of mass marker
+cm_point = ax.plot([], [], 'kx', markersize=1, label="center of mass")[0]
+#ax.legend()  , label="Center of mass"
+
+ax.legend()
+ax.grid()
+
+
+ani = animation.FuncAnimation(fig, make_update(scat, traj, lines, cm_point), frames=len(traj), interval=1, blit=True) #only preview
+
+ani.save(title, writer="pillow", fps=100, dpi=150) #animation in vs code does not work well so we saved it as a gif file
